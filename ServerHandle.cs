@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,9 +48,20 @@ namespace IKEAserver
 
         public static void GetNews(int _fromClient, Packet _packet)
         {
+            Console.WriteLine("Received a request for news");
+
             int numberOfNews = newsHandler.GetNumberOfDirectories();
 
-            ServerSend.SendNews(_fromClient, newsHandler.GetDirectory(), numberOfNews);
+            string[] newsSubDirectories = Directory.GetDirectories(newsHandler.GetDirectory());
+
+            List<string[]> newsData = new List<string[]>();
+
+            foreach (string subDirectory in newsSubDirectories)
+            {
+                newsData.Add(File.ReadAllLines(subDirectory + "\\description.txt"));
+            }
+
+            ServerSend.SendNews(_fromClient, numberOfNews, newsData);
         }
     }
 }

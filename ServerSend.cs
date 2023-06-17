@@ -109,19 +109,38 @@ namespace IKEAserver
             }
         }
 
-        public static void SendNews(int _toClient, string _url, int numberOfNews)
+        public static void SendNews(int _toClient, int numberOfNews, List<string[]> newsData)
         {
             using (Packet _packet = new Packet((int) ServerPackets.sendNews))
             {
                 _packet.Write(numberOfNews);
 
-                for (int i = 1; i <= numberOfNews; i++)
+                foreach (string[] s in newsData)
                 {
-                    _packet.Write(_url + "\\" + i.ToString() + "\\description.txt");
-                    _packet.Write(_url + "\\" + i.ToString() + "\\logo.jpeg");
-                }
+                    int lineChecker = 0;
+                    foreach (string s2 in s)
+                    {
+                        if (lineChecker == 3)
+                        {
+                            Console.WriteLine("Some of the news files contain more than 3 lines of information, packet submission may be broken!!");
+                            break;
+                        }
+                        _packet.Write(s2);
+                        lineChecker++;
+                    }
 
+                    if (lineChecker < 3)
+                    {
+                        Console.WriteLine("Some of the news files contain less than 3 lines of information, packet submission may be broken!!");
+                        
+                        for (; lineChecker < 3; lineChecker++)
+                        {
+                            _packet.Write("");
+                        }
+                    }
+                }
                 SendTCPData(_toClient, _packet);
+                Console.WriteLine("News data has been sent to the client");
             }
         }
     }
